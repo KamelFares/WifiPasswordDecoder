@@ -1,0 +1,35 @@
+import cv2
+import segno
+from pyzbar.pyzbar import decode
+
+def extract_wifi_password(qr_image_path):
+    # Read the QR code image
+    image = cv2.imread(qr_image_path)
+    detected_qr = decode(image)
+
+    if not detected_qr:
+        return "No QR code detected"
+
+    for qr_code in detected_qr:
+        qr_data = qr_code.data.decode("utf-8")
+
+        if qr_data.startswith("WIFI:"):
+            # Extract credentials
+            parts = qr_data[5:].split(";")
+            wifi_info = {}
+            for part in parts:
+                if part.startswith("S:"):
+                    wifi_info["SSID"] = part[2:]
+                elif part.startswith("P:"):
+                    wifi_info["Password"] = part[2:]
+                elif part.startswith("T:"):
+                    wifi_info["Encryption"] = part[2:]
+
+            return wifi_info if "Password" in wifi_info else "No password found"
+
+    return "Invalid WiFi QR code format"
+
+# Example usage
+qr_code_path = r"F:\wifipic.png" # Replace with the actual path to your QR code image
+wifi_details = extract_wifi_password(qr_code_path)
+print(wifi_details)
